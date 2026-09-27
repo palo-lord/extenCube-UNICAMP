@@ -1,117 +1,145 @@
-# Contrato: Mapa e Nomenclatura dos Sensores
+# Contrato: Mapa dos Sensores e Pipeline de Cor
 
-Identidade dos 12 TCS34725 e sua relação com faces, células e multiplexador.
-Depende de: cube\_state.md (faces/índices) e move\_alphabet.md (movimentos).
-Lib de sensor: TCS34725.h (hideakitai) — instância única re-selecionada via mux.
+Identidade dos 12 TCS34725, sua relação com faces, adesivos e multiplexador,
+e como a cor de cada adesivo é decidida.
+Depende de: `cube_state.md` (faces e índices) e `move_alphabet.md`.
+Biblioteca: `TCS34725.h` (hideakitai), **instância única** re-selecionada
+via mux (todos os sensores têm o mesmo endereço I2C).
 
-## Faces (idêntico a cube\_state.md)
+## Faces (idêntico a `cube_state.md`)
 
-U=0  R=1  F=2  D=3  L=4  B=5
+`U=0  R=1  F=2  D=3  L=4  B=5`
+
 HOME do robô: face branca (U) para cima, face verde (F) à frente.
-Cor de cada face no HOME: U=Branca R=Vermelha F=Verde D=Amarela L=Laranja B=Azul.
+Cores no HOME: U=Branca, R=Vermelha, F=Verde, D=Amarela, L=Laranja, B=Azul.
 
-## Dois sensores por face (nas células de menor índice)
+## Dois sensores por face
 
-* QUINA  (posição 0, tag 'q'): lê célula de canto  -> posição 0 da face
-* CENTRO (posição 1, tag 'c'): lê célula de aresta -> posição 1 da face
-"CENTRO" é o adesivo do meio-topo (aresta). NÃO é o centro fixo da face;
-ambos os sensores leem adesivos MÓVEIS.
+- **QUINA** (tag `q`): lê um adesivo de canto (posições pares 0, 2, 4, 6).
+- **CENTRO** (tag `c`): lê um adesivo de aresta (posições ímpares 1, 3, 5, 7).
 
-## Número do Sensor lógico (NS) e nomenclatura
+"Centro" é o adesivo do meio da borda (aresta), **não** o centro fixo da
+face. Os dois sensores leem adesivos móveis, sempre vizinhos: a aresta é a
+vizinha horária da quina.
 
-NS lógico = 2\*face + posição       (posição: 0 = quina, 1 = centro)
-Tag de 2 letras = \[inicial da face em inglês]\[papel: q=quina, c=centro]
-As estruturas de dados usam SEMPRE o NS lógico (ordem de contrato).
+## Número do Sensor lógico (NS)
 
-|NS|Tag|Face|Papel|Cor no HOME|Canal físico do mux|
-|-|-|-|-|-|-|
-|0|Uq|Up (0)|quina|Branca|2|
-|1|Uc|Up (0)|centro|Branca|3|
-|2|Rq|Right (1)|quina|Vermelha|4|
-|3|Rc|Right (1)|centro|Vermelha|5|
-|4|Fq|Front (2)|quina|Verde|6|
-|5|Fc|Front (2)|centro|Verde|7|
-|6|Dq|Down (3)|quina|Amarela|10|
-|7|Dc|Down (3)|centro|Amarela|11|
-|8|Lq|Left (4)|quina|Laranja|8|
-|9|Lc|Left (4)|centro|Laranja|9|
-|10|Bq|Back (5)|quina|Azul|0|
-|11|Bc|Back (5)|centro|Azul|1|
+`NS = 2*face + papel` (papel: 0 = quina, 1 = centro). As estruturas de dados
+usam sempre o NS lógico, na ordem de contrato.
 
-## Indireção fiação física (IMUTÁVEL — hardware pronto)
+| NS | Tag | Face | Papel | Cor no HOME | Canal físico do mux | Pino do LED |
+|---|---|---|---|---|---|---|
+| 0 | Uq | Up | quina | Branca | 2 | 24 |
+| 1 | Uc | Up | centro | Branca | 3 | 25 |
+| 2 | Rq | Right | quina | Vermelha | 4 | 26 |
+| 3 | Rc | Right | centro | Vermelha | 5 | 27 |
+| 4 | Fq | Front | quina | Verde | 6 | 28 |
+| 5 | Fc | Front | centro | Verde | 7 | 29 |
+| 6 | Dq | Down | quina | Amarela | 10 | 32 |
+| 7 | Dc | Down | centro | Amarela | 11 | 33 |
+| 8 | Lq | Left | quina | Laranja | 8 | 30 |
+| 9 | Lc | Left | centro | Laranja | 9 | 31 |
+| 10 | Bq | Back | quina | Azul | 0 | 22 |
+| 11 | Bc | Back | centro | Azul | 1 | 23 |
 
-A fiação NÃO segue NS = 2\*face+posição. As estruturas de dados seguem a
-ordem de contrato U,R,F,D,L,B; apenas a seleção do canal do mux é remapeada:
+## Indireção da fiação (hardware pronto, imutável)
 
-MUX\_CHANNEL\[NS lógico] = {2,3, 4,5, 6,7, 10,11, 8,9, 0,1}
+A fiação **não** segue `NS = 2*face + papel`. Só a seleção física é
+remapeada; o resto do código trabalha em NS lógico:
 
-Canais físicos por face: Back=0,1  Up=2,3  Right=4,5  Front=6,7
-Left=8,9  Down=10,11
+```cpp
+MUX_CHANNEL[NS] = {2,3, 4,5, 6,7, 10,11, 8,9, 0,1};   // scan.cpp
+LED_GPIO[canal físico] = {22, 23, ..., 33};             // scan.cpp
+```
 
-## Fiação (reprodutibilidade)
+Canais físicos por face: Back=0,1 · Up=2,3 · Right=4,5 · Front=6,7 ·
+Left=8,9 · Down=10,11.
 
-* Barramento compartilhado: VIN (5V), GND, SCL.
-* Por sensor, via mux 74HC4067: SDA (obrigatório) e LED (opcional, retentivo).
-* Seleção de canal = canal físico, com S0=LSB..S3=MSB e EN habilitando.
-* Sem seleção individual de LED (limitação de cabeamento): o conjunto é
-ligado/desligado por um único pino. Cross-talk mitigado por calibração e
-leitura ocorrerem sob a mesma iluminação.
-* Cores de jumper da bancada: LED=azul, SDA=verde, SCL=amarelo, GND=laranja,
-VIN=vermelho.
+## Fiação
 
-## Calibração (versão atual: GLOBAL, cubo resolvido, sem movimento)
+- Barramento compartilhado: VIN (5 V), GND, SCL.
+- Por sensor: **SDA** pelo mux CD74HC4067 (seleção S0..S3 nos pinos 11, 10,
+  9, 8; S0 = LSB) e **LED** num GPIO próprio (22..33), indexado pelo canal
+  físico do mesmo módulo.
+- LEDs individuais: só o LED do sensor lido fica aceso durante a leitura.
+  Isso eliminou o cross-talk entre sensores vizinhos (a causa dos erros
+  aleatórios de cor antes dessa mudança).
+- Cores de jumper da bancada: LED=azul, SDA=verde, SCL=amarelo,
+  GND=laranja, VIN=vermelho.
 
-Pré-condição: cubo RESOLVIDO no HOME. Cada face mostra sua cor sólida aos
-seus 2 sensores. Lêem-se os 12 sensores; para cada cor, faz-se a média
-circular dos 2 sensores da respectiva face -> 1 HUE global por cor,
-aplicado a TODOS os sensores (hipótese: sensores próximos).
-Saída: globalRef\[6] (HSV; hoje só o HUE é usado na classificação).
-Ordem das cores = ordem de contrato por índice de face: W,R,G,Y,O,B.
-(Futuro documentado: referência por sensor 12x6 com a máquina de 72 estados.)
+## Leitura de um adesivo (`senseRaw`, `detect_color.cpp`)
 
-## Leitura (embaralhamento)
+1. seleciona o canal do mux e acende **só** o LED daquele sensor;
+2. espera a luz estabilizar e descarta a primeira integração;
+3. lê o RGBC cru e apaga o LED.
 
-Saída: matriz 6x8 = 48 adesivos = o payload STATE do serial\_protocol,
-na ordem de contrato (face U,R,F,D,L,B; posição horária a partir do topo-esq).
+Com `SENSE_DEBUG 1` cada leitura é impressa como `[DBG ns=.. rgb=..]`.
+**Deve ficar em 0 para rodar com o host**, porque as linhas de debug não
+terminam em `*` e quebram o parser.
 
-## Classificação
+## Classificação por adesivo
 
-Distância angular de HUE entre a leitura e as 6 referências de globalRef;
-menor distância vence. Guards: soma RGB < 5 ou saturação < 0.05 -> 'X'.
+1. **Balanço de branco (von Kries).** O RGB é dividido por `whiteBal`, a
+   resposta do sensor à face branca medida no `c0*`. O TCS34725 não responde
+   a um alvo neutro com R=G=B; sem essa correção o branco sai com cor falsa
+   e colide com o amarelo.
+2. **Branco por saturação.** Após o balanço, o branco é acromático:
+   `S < whiteSatThresh` → `W`. O hue do branco é irrelevante.
+3. **Demais cores por hue.** Menor distância angular aos 5 hues de
+   referência (`globalRef`, calibrados no `c0*`, iguais para os 12 sensores).
+4. **R/O provisório.** Vermelho e laranja ficam a poucos graus de hue. Aqui
+   só se decide que o adesivo é "R ou O"; o palpite pela razão
+   `(r - g - b) / b` contra `RO_RATIO_THRESH` vale apenas para o `k_<ns>*`.
 
-## Premissas de uma calibração válida (c0\*)
+## Resolução R/O por peça (`sense_complete.cpp`)
 
-A estratégia de cor assume o seguinte, estabelecido empiricamente:
+Nenhuma métrica por adesivo separa vermelho de laranja com segurança: cada
+sensor tem seu brilho, e o vermelho de um sensor forte se parece com o
+laranja de um sensor fraco. Depois das 48 leituras, o firmware decide R/O
+usando a estrutura do cubo:
 
-1. **Balanço de branco (von Kries).** O TCS34725 não responde a um alvo
-neutro com R=G=B — os canais têm sensibilidades intrínsecas diferentes
-(não é clipping; é invariante ao tempo de integração). A face branca
-define whiteBal = {wR,wG,wB}; toda leitura é dividida por ele antes do
-HSV. Sem isso o branco sai com hue/saturação falsos e colide com amarelo.
-2. **Branco por saturação, cores por hue.** Após o balanço, o branco é
-acromático (saturação baixa) e é classificado por s < whiteSatThresh.
-As 5 cromáticas (R,G,Y,O,B) por menor distância angular de hue. O hue do
-branco é IRRELEVANTE (ele nunca chega ao teste de hue).
-3. **Tempo de integração equilibra o azul, não o branco.** O azul é a cor
-de menor refletância; integração curta demais o mata (S(B)->0). Valor de
-referência: \~50 ms. O branco NÃO precisa de integração curta (ver premissa 1).
-4. **Cubo resolvido no HOME, sem reflexo especular.** Cada face mostra sua
-cor sólida aos 2 sensores. Reflexo/brilho na face branca corrompe o
-whiteBal e, por consequência, TODAS as cores.
+1. **Quinas por quiralidade.** Toda quina tem três cores numa ordem horária
+   fixa (ex.: `W-R-G`). Com as duas cores confiáveis e suas posições, a
+   terceira é determinada. Não usa medida.
+2. **Arestas por pares.** Cada cor confiável (W, Y, G, B) aparece em duas
+   arestas com R/O, uma vermelha e uma laranja. Entre as duas, a de maior
+   pontuação R/O é a laranja. A pontuação é o log da razão, normalizado pela
+   referência R/O daquele sensor (`c1*`); sem `c1*`, usa a razão pura.
+3. **Paridade.** Num cubo real, a permutação das arestas e a das quinas têm
+   a mesma paridade. Trocar o R/O de um par de arestas quebra isso; se
+   quebrar, o firmware inverte o par com a decisão mais apertada.
 
-### Critérios de aceitação (checar na resposta do c0\*)
+Se algo não bater (peça com duas cores ambíguas, grupo com mais de 2
+arestas), o firmware não força nada: mantém a leitura, e o solver recusa o
+estado se ele for inválido.
 
-Uma calibração é considerada BOA quando:
+## Calibrações
 
-* S(W) é a MENOR das 6 saturações, com folga (ex.: S(W) < 0.5 \* menor S cromática).
-* whiteSatThresh fica entre S(W) e a menor saturação cromática (não colado em nenhuma).
-* Todas as 5 saturações cromáticas são altas (ex.: > 0.4). S(qualquer)\~0 = cor morta.
-* wR, wG, wB são da mesma ordem de grandeza (nenhum \~0 nem um absurdamente maior).
-* Os 6 hues cromáticos estão razoavelmente espalhados (o par mais próximo é R\~O).
+| Comando | Cubo | Aprende | Detalhes |
+|---|---|---|---|
+| `c0*` | resolvido, sem movimento | `whiteBal`, `globalRef`, `whiteSatThresh` | premissas abaixo |
+| `c1*` | resolvido, com 2 scrambles | referência R/O por face | `serial_protocol.md` |
 
-### Referência de uma calibração boa (bancada, 2026)
+### Premissas de um `c0*` válido (auto-validadas, falha → `e5*`)
 
-280.9\_356.2\_132.1\_54.1\_0.6\_233.6\_0.086\_0.741\_0.624\_0.863\_0.961\_0.813\_0.355\_18\_18\_7
-(H: W R G Y O B | S: W R G Y O B | whiteSatThresh | wR wG wB)
-Nota: H(W)=280.9 é irrelevante por construção (branco resolvido por saturação).
+- O branco é a cor **menos** saturada, com folga:
+  `S(W) < 0.5 × menor S cromática`.
+- Toda cor cromática tem saturação viva (`S > 0.30`).
+- `wR`, `wG`, `wB` da mesma ordem de grandeza (razão < 10), senão há reflexo
+  na face branca.
 
+Ver critérios de leitura da resposta em `calibration.md`.
+
+## Validação na bancada (set/2026)
+
+Com `s0* → c0* → c1*` e os embaralhamentos de teste T0–T4 (5 a 10
+movimentos, as 6 faces), o `r0*` acertou **48/48 nos cinco**. A referência
+R/O medida no `c1*`:
+
+| Face | U | R | F | D | L | B |
+|---|---|---|---|---|---|---|
+| R | 9.02 | 5.80 | 16.17 | 12.14 | 11.95 | 7.06 |
+| O | 19.82 | 17.23 | 50.04 | 31.26 | 19.37 | 19.58 |
+
+A face L (ns 9) é a mais apertada (O/R ≈ 1.6×): se um erro de R/O aparecer,
+é o primeiro suspeito.

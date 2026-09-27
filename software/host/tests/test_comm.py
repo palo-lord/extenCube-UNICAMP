@@ -1,5 +1,5 @@
 """Validação de ponta a ponta da comunicação host<->firmware (contra o Uno dummy).
-Rode com o firmware_dummy no Uno. Uso (de dentro de host/):  python -m tests.test_comm [COM5]
+Rode com software/tools/firmware_dummy/firmware_dummy.ino gravado no Uno. Uso (de dentro de host/):  python -m tests.test_comm [COM5]
 """
 import sys
 from app.communication import open_link, close_link
@@ -17,14 +17,19 @@ def main():
 
     # CALIBRATE -> dict estruturado
     cal = link.calibrate()
-    assert cal['hue']['W'] == 280.9 and cal['white_sat_thresh'] == 0.355, cal
-    assert cal['white_balance'] == {'r':18.0,'g':18.0,'b':7.0}, cal
-    print(f"[ok] calib -> W_hue={cal['hue']['W']}  thresh={cal['white_sat_thresh']}  wb={cal['white_balance']}")
+    assert cal['hue']['R'] == 346.4 and cal['white_sat_thresh'] == 0.459, cal
+    assert cal['white_balance'] == {'r':19.0,'g':17.0,'b':9.0}, cal
+    print(f"[ok] calib -> R_hue={cal['hue']['R']}  thresh={cal['white_sat_thresh']}  wb={cal['white_balance']}")
 
-    # SENSE -> matriz 6x8
+    # CALIBRATE_RO -> referência R/O por face
+    ro = link.calibrate_ro()
+    assert list(ro) == list("URFDLB") and ro['L'] == {'R': 11.95, 'O': 19.37}, ro
+    print(f"[ok] calib R/O -> L={ro['L']}")
+
+    # SENSE -> matriz 6x8 (estado do T0 no dummy)
     state = link.sense()
     assert len(state) == 6 and all(len(f)==8 for f in state), state
-    assert state[0] == list("WWWWWWWW") and state[5] == list("BBBBBBBB"), state
+    assert state[0] == list("OBBWRYYG") and state[5] == list("WOGYYRRW"), state
     print(f"[ok] sense -> face U={''.join(state[0])}  face B={''.join(state[5])}")
 
     # MOVE -> tempo (float)
