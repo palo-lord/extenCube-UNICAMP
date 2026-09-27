@@ -3,7 +3,7 @@
 Estado gerado por: R U R' U' F2 L D  (a partir do resolvido, HOME branca/cima
 verde/frente). O adapter converte a matriz 6x8 -> 54 facelets; Kociemba e M2OP
 devolvem a solução. A solução do Kociemba deve ser o inverso do scramble.
-Rode de dentro de host/:  python test_solver.py
+Rode de dentro de host/:  python -m tests.test_solver
 """
 from solver.main_solver import SolverFlow
 from solver.base import state_to_cube_string

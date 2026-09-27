@@ -1,0 +1,19 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# --- PlatformIO / firmware (complementa software/firmware/.gitignore) ---
+.pio/
+
+# --- Editores / sistema ---
+.vscode/*.db*
+.DS_Store
+Thumbs.db
+
+# --- Pacotes compactados (a estrutura vive no próprio repositório) ---
+*.rar
+*.zip

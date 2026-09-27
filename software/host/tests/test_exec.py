@@ -1,5 +1,5 @@
 """Testa ExecFlow sem hardware, com link falso.
-Roda de dentro de host/:  python test_exec.py
+Roda de dentro de host/:  python -m tests.test_exec
 """
 from execution.main_exec import ExecFlow
 from app.communication.embedded import InvalidMoveError
