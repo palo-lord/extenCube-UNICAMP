@@ -1,5 +1,5 @@
 """Validação de ponta a ponta da comunicação host<->firmware (contra o Uno dummy).
-Rode com o firmware_dummy no Uno. Uso:  python test_comm.py [COM5]
+Rode com o firmware_dummy no Uno. Uso (de dentro de host/):  python -m tests.test_comm [COM5]
 """
 import sys
 from app.communication import open_link, close_link
