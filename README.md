@@ -56,8 +56,9 @@ software/
 ├── firmware/           PlatformIO, um único binário para o Mega
 │   └── src/            main.cpp · motion/ · sensing/ · protocol/
 ├── host/               Python
-│   ├── raiden.py       ponto de entrada
-│   ├── app/            main_raiden (orquestrador) · communication/ · ui_ux/
+│   ├── raiden_gui.py   ponto de entrada (interface gráfica)
+│   ├── raiden.py       ponto de entrada (menu no terminal)
+│   ├── app/            main_raiden (orquestrador) · communication/ · ui_ux/ (interface)
 │   ├── sensor/         SensorFlow
 │   ├── solver/         SolverFlow · base.py (adapter) · methods/ (kociemba, m2op)
 │   ├── execution/      ExecFlow
@@ -89,10 +90,11 @@ cd software/host
 python -m venv .venv
 .venv\Scripts\activate          # Windows  (Linux/macOS: source .venv/bin/activate)
 pip install -r requirements.txt
-python raiden.py
+python raiden_gui.py            # interface gráfica
+python raiden.py                # ou: menu no terminal
 ```
 
-O `raiden.py` pergunta o modo de operação:
+As duas entradas usam o mesmo sistema; escolha o modo de operação na tela:
 
 | Modo | Precisa de | Para quê |
 |---|---|---|
@@ -100,20 +102,26 @@ O `raiden.py` pergunta o modo de operação:
 | **2 · Uno dummy** | Arduino com [`firmware_dummy.ino`](software/tools/firmware_dummy/firmware_dummy.ino) | testa a serial real sem o robô |
 | **3 · Real** | robô com o firmware | operação de verdade (os motores se movem) |
 
-A porta do Arduino é detectada sozinha. Feche o Serial Monitor antes, porque
-só um programa pode usar a porta por vez.
+A porta do Arduino é detectada sozinha (na interface, o campo *Porta* pode
+ficar vazio). Feche o Serial Monitor antes, porque só um programa pode usar a
+porta por vez.
 
 ### Operação no modo Real
 
-1. Cubo **resolvido**, branco em cima e verde à frente → **1) Preparar**.
+1. Cubo **resolvido**, branco em cima e verde à frente → **1 · Preparar**.
    Leva alguns minutos e termina com o cubo resolvido.
-2. Embaralhe o cubo (à mão, ou pelo item **7** com uma sequência como
-   `JAJDGA`).
-3. **2) Resolver + executar**: lê o cubo, calcula a solução e executa.
+2. Embaralhe o cubo (à mão, ou enviando uma sequência como `JAJDGA`).
+3. **2 · Resolver e executar**: lê o cubo, calcula a solução e executa.
 
 As calibrações ficam na memória do Arduino: refaça o **Preparar** após
-resetar a placa. O item **8** alterna entre Kociemba (~20 movimentos) e
-M2OP (método didático, ~200 movimentos); o **9** ajusta a velocidade.
+resetar a placa. O método (Kociemba, ~20 movimentos, ou M2OP, didático,
+~200) e a velocidade dos motores ficam em *Configuração* na interface
+(itens 8 e 9 no menu do terminal).
+
+Na interface, cada etapa aparece no *Registro* com ✓ ou ✗, o cubo lido é
+desenhado planificado e a solução fica visível antes da execução. Toda
+operação roda em segundo plano: a janela não congela durante o
+sensoriamento, e os botões ficam travados até a operação terminar.
 
 ## Testes
 

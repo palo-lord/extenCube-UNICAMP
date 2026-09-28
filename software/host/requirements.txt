@@ -1,4 +1,5 @@
 # Dependências do host (Python). Instalar com:
 #   pip install -r requirements.txt
-pyserial>=3.5     # link serial com o firmware (modos Uno dummy e real)
-kociemba>=1.2     # solver Kociemba (todos os modos, inclusive demo)
+pyserial>=3.5          # link serial com o firmware (modos Uno dummy e real)
+kociemba>=1.2          # solver Kociemba (todos os modos, inclusive demo)
+customtkinter>=5.2     # interface gráfica (raiden_gui.py)
