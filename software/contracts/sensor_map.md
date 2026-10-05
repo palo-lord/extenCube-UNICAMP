@@ -29,8 +29,8 @@ usam sempre o NS lógico, na ordem de contrato.
 
 | NS | Tag | Face | Papel | Cor no HOME | Canal físico do mux | Pino do LED |
 |---|---|---|---|---|---|---|
-| 0 | Uq | Up | quina | Branca | 2 | 24 |
-| 1 | Uc | Up | centro | Branca | 3 | 25 |
+| 0 | Uq | Up | quina | Branca | 2 | 11 |
+| 1 | Uc | Up | centro | Branca | 3 | 10 |
 | 2 | Rq | Right | quina | Vermelha | 4 | 26 |
 | 3 | Rc | Right | centro | Vermelha | 5 | 27 |
 | 4 | Fq | Front | quina | Verde | 6 | 28 |
@@ -39,8 +39,8 @@ usam sempre o NS lógico, na ordem de contrato.
 | 7 | Dc | Down | centro | Amarela | 11 | 33 |
 | 8 | Lq | Left | quina | Laranja | 8 | 30 |
 | 9 | Lc | Left | centro | Laranja | 9 | 31 |
-| 10 | Bq | Back | quina | Azul | 0 | 22 |
-| 11 | Bc | Back | centro | Azul | 1 | 23 |
+| 10 | Bq | Back | quina | Azul | 0 | 13 |
+| 11 | Bc | Back | centro | Azul | 1 | 12 |
 
 ## Indireção da fiação (hardware pronto, imutável)
 
@@ -49,7 +49,7 @@ remapeada; o resto do código trabalha em NS lógico:
 
 ```cpp
 MUX_CHANNEL[NS] = {2,3, 4,5, 6,7, 10,11, 8,9, 0,1};   // scan.cpp
-LED_GPIO[canal físico] = {22, 23, ..., 33};             // scan.cpp
+LED_GPIO[canal físico] = {11, 10, 26, ..., 12};             // scan.cpp
 ```
 
 Canais físicos por face: Back=0,1 · Up=2,3 · Right=4,5 · Front=6,7 ·
@@ -58,8 +58,8 @@ Left=8,9 · Down=10,11.
 ## Fiação
 
 - Barramento compartilhado: VIN (5 V), GND, SCL.
-- Por sensor: **SDA** pelo mux CD74HC4067 (seleção S0..S3 nos pinos 11, 10,
-  9, 8; S0 = LSB) e **LED** num GPIO próprio (22..33), indexado pelo canal
+- Por sensor: **SDA** pelo mux CD74HC4067 (seleção S0..S3 nos pinos 6, 5,
+  4, 3; S0 = LSB) e **LED** num GPIO próprio (11..12), indexado pelo canal
   físico do mesmo módulo.
 - LEDs individuais: só o LED do sensor lido fica aceso durante a leitura.
   Isso eliminou o cross-talk entre sensores vizinhos (a causa dos erros
