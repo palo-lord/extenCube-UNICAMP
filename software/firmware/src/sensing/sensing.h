@@ -8,10 +8,10 @@
 #define NUM_COLORS    6
 
 // Pinos de seleção do mux 74HC4067 (S0..S3). TODO(hw): confirmar.
-#define MUX_SEL_0 11
-#define MUX_SEL_1 10
-#define MUX_SEL_2 9
-#define MUX_SEL_3 8
+#define MUX_SEL_0 6
+#define MUX_SEL_1 5
+#define MUX_SEL_2 4
+#define MUX_SEL_3 3
 
 // LEDs individuais — UM GPIO por sensor, indexado por CANAL FÍSICO do mux
 // (o LED fica no mesmo módulo TCS34725 que o SDA daquele canal).
