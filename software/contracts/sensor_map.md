@@ -49,7 +49,7 @@ remapeada; o resto do código trabalha em NS lógico:
 
 ```cpp
 MUX_CHANNEL[NS] = {2,3, 4,5, 6,7, 10,11, 8,9, 0,1};   // scan.cpp
-LED_GPIO[canal físico] = {11, 10, 26, ..., 12};             // scan.cpp
+LED_GPIO[canal físico] = {13, 12, 11, 10, 26, 27, 28, 29, 30, 31, 32, 33} // scan.cpp
 ```
 
 Canais físicos por face: Back=0,1 · Up=2,3 · Right=4,5 · Front=6,7 ·
